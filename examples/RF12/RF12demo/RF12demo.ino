@@ -562,6 +562,8 @@ const char helpText1[] PROGMEM =
   "Remote control commands:" "\n"
   "  <hchi>,<hclo>,<addr>,<cmd> f     - FS20 command (868 MHz)" "\n"
   "  <addr>,<dev>,<on> k              - KAKU command (433 MHz)" "\n"
+  "Configuration commands:" "\n"
+  "  <nodeID>,<needACK>,<loopIter.>,<loopDur.> y   - Send Conf" "\n"
 ;
 const char helpText2[] PROGMEM = 
   "Flash storage (JeeLink only):" "\n"
@@ -589,6 +591,7 @@ static void showHelp () {
   Serial.println("Current configuration:");
   rf12_config();
 }
+
 
 static void handleInput (char c) {
   if ('0' <= c && c <= '9')
@@ -703,6 +706,24 @@ static void handleInput (char c) {
         break;
       case 'v': //display the interpreter version
         displayVersion(1);
+        break;
+
+      case 'y': // Send configuration command
+        // We need 4 parameters, 3 in stack, 1 in value
+        if(top == 3){
+          cmd = 's';
+          sendLen = 6;
+          dest = 30;
+
+          testbuf[0] = 0xDE;
+          testbuf[1] = 0xCA;
+          memcpy(testbuf + 2, stack, top);
+          testbuf[5] = value;
+
+          Serial.println("Configuration packet sent");
+        } else {
+          Serial.println("Invalid number of parameters");
+        }
         break;
     }
     value = top = 0;
